@@ -1,0 +1,11 @@
+finditem {
+    id {
+        id brigadier:string single_word;
+    }
+    enchantment {
+        enchantment brigadier:string single_word;
+    }
+    name {
+        name brigadier:string greedy_phrase;
+    }
+}

@@ -1,0 +1,15 @@
+name: ItemManager
+version: ${version}
+author: RuscalWorld
+api-version: '1.15'
+description: Rename your items!
+main: ru.ruscalworld.itemmanager.ItemManager
+commands:
+    itemmanager:
+        description: Main command
+        aliases: [im]
+        permission: itemmanager.use
+    finditem:
+        description: Searches given item in player's inventories
+        aliases: [fi]
+        permission: itemmanager.finditem

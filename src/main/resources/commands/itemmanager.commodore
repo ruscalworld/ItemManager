@@ -1,0 +1,20 @@
+itemmanager {
+    setname {
+        name brigadier:string greedy_phrase;
+    }
+    setcolor {
+        color brigadier:string single_word;
+    }
+    lore {
+        add {
+            lore brigadier:string greedy_phrase;
+        }
+        set {
+            lore brigadier:string greedy_phrase;
+        }
+        remove {
+            row brigadier:integer;
+        }
+        clear;
+    }
+}
