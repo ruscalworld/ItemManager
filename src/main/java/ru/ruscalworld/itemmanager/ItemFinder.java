@@ -2,18 +2,23 @@ package ru.ruscalworld.itemmanager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.block.ShulkerBox;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ItemFinder extends BukkitRunnable {
 
@@ -21,6 +26,10 @@ public class ItemFinder extends BukkitRunnable {
     private String name;
     private Enchantment enchantment;
     private CommandSender caller;
+
+    private int itemsChecked = 0;
+    private int itemsFound = 0;
+    private int playersChecked = 0;
 
     public ItemFinder(Material item, CommandSender caller) {
         this.item = item;
@@ -48,10 +57,6 @@ public class ItemFinder extends BukkitRunnable {
         caller.sendMessage("Запуск асинхронного поиска...");
         Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
 
-        int itemsChecked = 0;
-        int itemsFound = 0;
-        int playersChecked = 0;
-
         for (Player player : onlinePlayers) {
             PlayerInventory inventory = player.getInventory();
             ItemStack[] items = inventory.getContents();
@@ -59,34 +64,52 @@ public class ItemFinder extends BukkitRunnable {
             for (ItemStack item : items) {
                 if (item == null) continue;
                 if (item.getType() == Material.AIR) continue;
-                ItemMeta itemMeta = item.getItemMeta();
+                if (!item.getType().toString().contains("SHULKER_BOX")) continue;
 
-                if (itemMeta != null) {
-                    String displayName = itemMeta.getDisplayName();
-
-                    if (this.name != null && displayName.contains(this.name)) {
-                        caller.sendMessage("§fУказанный предмет был найден у §9" + player.getName());
-                        itemsFound++;
-                    }
-
-                    if (this.enchantment != null && itemMeta.getEnchants().containsKey(this.enchantment)) {
-                        caller.sendMessage("§fУказанный предмет был найден у §9" + player.getName());
-                        itemsFound++;
+                if (item.getItemMeta() instanceof BlockStateMeta) {
+                    BlockStateMeta im = (BlockStateMeta) item.getItemMeta();
+                    if (im.getBlockState() instanceof ShulkerBox) {
+                        ShulkerBox shulker = (ShulkerBox) im.getBlockState();
+                        ItemStack[] contents = shulker.getInventory().getContents();
+                        checkContainer(contents, player);
                     }
                 }
-
-                if (this.item != null && item.getType() == this.item) {
-                    caller.sendMessage("§fУказанный предмет был найден у §9" + player.getName());
-                    itemsFound++;
-                }
-
-                itemsChecked++;
             }
 
+            checkContainer(items, player);
             playersChecked++;
         }
 
         caller.sendMessage("§fПроверено §9" + itemsChecked + "§f предметов у §9" + playersChecked + "§f " +
                 "игроков. §9" + itemsFound + "§f предметов найдено.");
+    }
+
+    private void checkContainer(ItemStack[] items, Player owner) {
+        for (ItemStack item : items) {
+            if (item == null) continue;
+            if (item.getType() == Material.AIR) continue;
+            ItemMeta itemMeta = item.getItemMeta();
+
+            if (itemMeta != null) {
+                String displayName = itemMeta.getDisplayName();
+
+                if (this.name != null && displayName.contains(this.name)) {
+                    caller.sendMessage("§fУказанный предмет был найден у §9" + owner.getName());
+                    itemsFound++;
+                }
+
+                if (this.enchantment != null && itemMeta.getEnchants().containsKey(this.enchantment)) {
+                    caller.sendMessage("§fУказанный предмет был найден у §9" + owner.getName());
+                    itemsFound++;
+                }
+            }
+
+            if (this.item != null && item.getType() == this.item) {
+                caller.sendMessage("§fУказанный предмет был найден у §9" + owner.getName());
+                itemsFound++;
+            }
+
+            itemsChecked++;
+        }
     }
 }
